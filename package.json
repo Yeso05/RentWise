@@ -1,0 +1,25 @@
+{
+  "name": "rentwise",
+  "version": "1.0.0",
+  "description": "RentWise is a full-stack web application designed to manage rental properties, tenants, and payments efficiently. It provides role-based dashboards for landlords and tenants with real-time data integration.",
+  "main": "BuildRentWise.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yeso05/RentWise.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Yeso05/RentWise/issues"
+  },
+  "homepage": "https://github.com/Yeso05/RentWise#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "docx": "^9.6.1"
+  }
+}

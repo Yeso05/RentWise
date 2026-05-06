@@ -30,7 +30,7 @@ export default function Sidebar({ open }) {
     <aside
       className={`
         fixed top-16 left-0 h-[calc(100vh-64px)] z-40
-        w-64 bg-brand-sidebar border-r border-white/5
+        w-64 bg-white border-r border-[var(--gray-pale)]
         flex flex-col transition-all duration-300
         ${open ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0 lg:sticky lg:top-16
@@ -51,21 +51,21 @@ export default function Sidebar({ open }) {
                 flex items-center gap-3 px-4 py-3 rounded-xl
                 text-sm font-medium transition-all
                 ${isActive
-                  ? 'active-gradient text-white shadow-lg'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-[rgba(181,155,114,0.18)] text-[var(--navy)] border border-[var(--stone-light)]'
+                  : 'text-[var(--ink-muted)] hover:text-[var(--navy)] hover:bg-[rgba(28,47,63,0.04)]'
                 }
               `}
             >
-              <Icon size={18} className={isActive ? 'text-white' : 'text-slate-500'} />
+              <Icon size={18} className={isActive ? 'text-[var(--navy)]' : 'text-[var(--ink-subtle)]'} />
               <span>{item.name}</span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-white/5">
-        <div className="p-4 rounded-xl bg-white/5 text-center">
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Version 2.4.0</p>
+      <div className="p-4 border-t border-[var(--gray-pale)]">
+        <div className="p-4 rounded-xl bg-[rgba(28,47,63,0.03)] text-center">
+          <p className="text-[10px] font-bold text-[var(--ink-subtle)] uppercase tracking-widest">Version 2.4.0</p>
         </div>
       </div>
     </aside>

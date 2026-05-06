@@ -1,0 +1,6 @@
+graph TD
+  Client[React/Vite Frontend Client Tier]
+  API[Node.js/Express API Application Tier]
+  DB[(PostgreSQL DB Data Tier)]
+  Client -- HTTP / JSON --> API
+  API -- pg-pool / SQL --> DB

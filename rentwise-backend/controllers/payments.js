@@ -2,9 +2,16 @@ const db = require('../db');
 
 exports.getAll = async (req, res) => {
   try {
-    // const result = await db.query('SELECT * FROM payments');
-    // res.json(result.rows);
-    res.json({ message: 'Fetch all payments' });
+    const { email, status } = req.query;
+    let query = 'SELECT p.*, t.full_name as tenant_name, pr.title as property_title FROM payments p JOIN tenants t ON p.tenant_id = t.id JOIN properties pr ON p.property_id = pr.id';
+    const params = [];
+    if (status) {
+      query += ' WHERE p.status = $1';
+      params.push(status);
+    }
+    query += ' ORDER BY p.created_at DESC';
+    const result = await db.query(query, params);
+    res.json(result.rows);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -12,7 +19,17 @@ exports.getAll = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    res.status(201).json({ message: 'Create new payments', data: req.body });
+    const { tenant_id, property_id, amount, due_date, status } = req.body;
+    if (!tenant_id || !property_id || !amount || !due_date) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    const result = await db.query(
+      `INSERT INTO payments (tenant_id, property_id, amount, due_date, status)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
+      [tenant_id, property_id, amount, due_date, status || 'Pending']
+    );
+    res.status(201).json(result.rows[0]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -20,7 +37,12 @@ exports.create = async (req, res) => {
 
 exports.getOne = async (req, res) => {
   try {
-    res.json({ message: `Fetch payments with id ${req.params.id}` });
+    const { id } = req.params;
+    const result = await db.query('SELECT * FROM payments WHERE id = $1', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+    res.json(result.rows[0]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -28,7 +50,16 @@ exports.getOne = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    res.json({ message: `Update payments with id ${req.params.id}`, data: req.body });
+    const { id } = req.params;
+    const { status, paid_date } = req.body;
+    const result = await db.query(
+      `UPDATE payments SET status = COALESCE($1, status), paid_date = COALESCE($2, paid_date) WHERE id = $3 RETURNING *`,
+      [status, paid_date, id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+    res.json(result.rows[0]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -36,7 +67,12 @@ exports.update = async (req, res) => {
 
 exports.remove = async (req, res) => {
   try {
-    res.json({ message: `Delete payments with id ${req.params.id}` });
+    const { id } = req.params;
+    const result = await db.query('DELETE FROM payments WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+    res.json({ message: 'Payment deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

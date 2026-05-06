@@ -1,0 +1,9 @@
+graph TD
+  Router[Express Routers]
+  Controller[Controllers]
+  Pool[pg Pool]
+  DB[(PostgreSQL)]
+
+  Router -->|Dispatches req| Controller
+  Controller -->|pool.query| Pool
+  Pool -->|SQL| DB

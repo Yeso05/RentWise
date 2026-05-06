@@ -2,9 +2,52 @@ const db = require('./db');
 const bcrypt = require('bcrypt');
 
 async function seedDatabase() {
+          // Drop and recreate payments table to ensure clean state
+          console.log('Resetting payments table...');
+          await db.query('DROP TABLE IF EXISTS payments CASCADE;');
+          await db.query(`
+            CREATE TABLE IF NOT EXISTS payments (
+              id SERIAL PRIMARY KEY,
+              tenant_id INT REFERENCES tenants(id) ON DELETE CASCADE,
+              property_id INT REFERENCES properties(id) ON DELETE CASCADE,
+              amount DECIMAL(10, 2) NOT NULL,
+              status VARCHAR(50) DEFAULT 'Pending' CHECK (status IN ('Paid', 'Pending', 'Overdue')),
+              due_date DATE NOT NULL,
+              paid_date DATE,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+          `);
+      // Drop and recreate tenants table to ensure clean state
+      console.log('Resetting tenants table...');
+      await db.query('DROP TABLE IF EXISTS tenants CASCADE;');
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS tenants (
+          id SERIAL PRIMARY KEY,
+          full_name VARCHAR(100) NOT NULL,
+          email VARCHAR(100) UNIQUE NOT NULL,
+          password TEXT NOT NULL,
+          property_id INT REFERENCES properties(id) ON DELETE CASCADE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
   try {
     console.log('🌱 Starting database seeding...');
 
+
+
+    // Drop and recreate users table to ensure correct schema
+    console.log('Resetting users table...');
+    await db.query('DROP TABLE IF EXISTS users CASCADE;');
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        email VARCHAR(100) UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        role VARCHAR(50) NOT NULL CHECK (role IN ('Landlord', 'Tenant')),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
 
     // 0. Seed users (landlord and tenants) with hashed passwords
     console.log('Adding users...');

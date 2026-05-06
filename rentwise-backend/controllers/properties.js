@@ -2,9 +2,17 @@ const db = require('../db');
 
 exports.getAll = async (req, res) => {
   try {
-    // const result = await db.query('SELECT * FROM properties');
-    // res.json(result.rows);
-    res.json({ message: 'Fetch all properties' });
+    const { email } = req.query;
+    if (email) {
+      const result = await db.query(
+        'SELECT * FROM properties WHERE landlord_email = $1 ORDER BY created_at DESC',
+        [email]
+      );
+      res.json(result.rows);
+    } else {
+      const result = await db.query('SELECT * FROM properties ORDER BY created_at DESC');
+      res.json(result.rows);
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -12,7 +20,17 @@ exports.getAll = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    res.status(201).json({ message: 'Create new properties', data: req.body });
+    const { title, location, rent, status, landlord_email } = req.body;
+    if (!title || !location || !rent || !landlord_email) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    const result = await db.query(
+      `INSERT INTO properties (title, location, rent, status, landlord_email)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
+      [title, location, rent, status || 'vacant', landlord_email]
+    );
+    res.status(201).json(result.rows[0]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -20,7 +38,12 @@ exports.create = async (req, res) => {
 
 exports.getOne = async (req, res) => {
   try {
-    res.json({ message: `Fetch properties with id ${req.params.id}` });
+    const { id } = req.params;
+    const result = await db.query('SELECT * FROM properties WHERE id = $1', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Property not found' });
+    }
+    res.json(result.rows[0]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -28,7 +51,16 @@ exports.getOne = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    res.json({ message: `Update properties with id ${req.params.id}`, data: req.body });
+    const { id } = req.params;
+    const { title, location, rent, status } = req.body;
+    const result = await db.query(
+      `UPDATE properties SET title = COALESCE($1, title), location = COALESCE($2, location), rent = COALESCE($3, rent), status = COALESCE($4, status) WHERE id = $5 RETURNING *`,
+      [title, location, rent, status, id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Property not found' });
+    }
+    res.json(result.rows[0]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -36,7 +68,12 @@ exports.update = async (req, res) => {
 
 exports.remove = async (req, res) => {
   try {
-    res.json({ message: `Delete properties with id ${req.params.id}` });
+    const { id } = req.params;
+    const result = await db.query('DELETE FROM properties WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Property not found' });
+    }
+    res.json({ message: 'Property deleted successfully', data: result.rows[0] });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

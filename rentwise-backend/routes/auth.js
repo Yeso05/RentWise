@@ -24,15 +24,20 @@ router.post("/signup", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      `INSERT INTO users (full_name, email, password, role)
+      `INSERT INTO users (name, email, password_hash, role)
        VALUES ($1, $2, $3, $4)
-       RETURNING id, full_name, email, role`,
+       RETURNING id, name, email, role`,
       [name, email, hashedPassword, role]
     );
 
     res.status(201).json({
       message: "Signup successful",
-      user: result.rows[0]
+      user: {
+        id: result.rows[0].id,
+        name: result.rows[0].name,
+        email: result.rows[0].email,
+        role: result.rows[0].role
+      }
     });
 
   } catch (error) {
@@ -58,11 +63,23 @@ router.post("/login", async (req, res) => {
       });
     }
 
+
     const user = result.rows[0];
+    // Debug log for diagnosis
+    console.log('LOGIN DEBUG: user row from DB:', user);
+    console.log('LOGIN DEBUG: password from client:', password);
+    console.log('LOGIN DEBUG: password_hash from DB:', user.password_hash);
+
+    if (!user.password_hash || !password) {
+      return res.status(500).json({
+        error: 'Missing password or password_hash in login',
+        details: { password, password_hash: user.password_hash }
+      });
+    }
 
     const isMatch = await bcrypt.compare(
       password,
-      user.password
+      user.password_hash
     );
 
     if (!isMatch) {
@@ -85,7 +102,7 @@ router.post("/login", async (req, res) => {
       token,
       user: {
         id: user.id,
-        full_name: user.full_name,
+        name: user.name,
         email: user.email,
         role: user.role
       }

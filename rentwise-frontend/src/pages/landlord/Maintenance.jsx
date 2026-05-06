@@ -1,53 +1,88 @@
-import { Wrench, Clock, AlertTriangle, CheckCircle2, MessageSquare, MapPin, Plus, Filter, Search, MoreVertical, Zap } from 'lucide-react';
-import { useState } from 'react';
-
-const maintenanceRequests = [
-  {
-    id: 'REQ-101',
-    title: 'Water leaking from AC Unit',
-    property: 'Sea View Apartment 4B',
-    tenant: 'Rahul Verma',
-    date: '2 hours ago',
-    priority: 'High',
-    status: 'In Progress',
-    category: 'Plumbing'
-  },
-  {
-    id: 'REQ-102',
-    title: 'Broken window latch',
-    property: 'Green Park Villa 02',
-    tenant: 'Priya Singh',
-    date: '1 day ago',
-    priority: 'Low',
-    status: 'Open',
-    category: 'Carpentry'
-  },
-  {
-    id: 'REQ-103',
-    title: 'Main door lock jammed',
-    property: 'Tech Hub Studio 11',
-    tenant: 'Amit Patel',
-    date: '2 days ago',
-    priority: 'Medium',
-    status: 'Open',
-    category: 'Security'
-  }
-];
+import { Wrench, MapPin, Plus, Filter, Search, Loader2, X, ArrowRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 const priorityStyles = {
-  High: 'bg-rose-500/10 text-rose-400',
-  Medium: 'bg-amber-500/10 text-amber-400',
-  Low: 'bg-emerald-500/10 text-emerald-400'
+  High: 'rw-pill rw-pill-rose',
+  Medium: 'rw-pill rw-pill-amber',
+  Low: 'rw-pill rw-pill-emerald'
 };
 
 const statusStyles = {
-  'Open': 'bg-white/5 text-slate-400',
-  'In Progress': 'bg-brand-accent/20 text-brand-accent',
-  'Resolved': 'bg-emerald-500/20 text-emerald-400'
+  'Open': 'rw-pill',
+  'In Progress': 'rw-pill rw-pill-stone',
+  'Resolved': 'rw-pill rw-pill-emerald'
 };
 
 export default function LandlordMaintenance() {
   const [showModal, setShowModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [maintenance, setMaintenance] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    priority: 'Medium',
+    property_id: '',
+    tenant_id: ''
+  });
+
+  useEffect(() => {
+    fetchMaintenance();
+  }, []);
+
+  const fetchMaintenance = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/maintenance');
+      const data = await res.json();
+      setMaintenance(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching maintenance:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('http://localhost:5000/api/maintenance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          priority: formData.priority,
+          status: 'Open'
+        })
+      });
+
+      if (res.ok) {
+        setShowModal(false);
+        fetchMaintenance();
+        setFormData({
+          title: '',
+          description: '',
+          priority: 'Medium',
+          property_id: '',
+          tenant_id: ''
+        });
+      }
+    } catch (error) {
+      console.error('Error creating maintenance request:', error);
+    }
+  };
+
+  const getTimeAgo = (date) => {
+    if (!date) return 'N/A';
+    const now = new Date();
+    const diff = now - new Date(date);
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+    
+    if (hours < 1) return 'Just now';
+    if (hours < 24) return `${hours} hours ago`;
+    if (days < 30) return `${days} days ago`;
+    return new Date(date).toLocaleDateString('en-IN');
+  };
 
   return (
     <div className="space-y-8 animate-fade-in-up">
@@ -55,12 +90,12 @@ export default function LandlordMaintenance() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Maintenance Requests</h1>
-          <p className="text-slate-400 mt-1">Track and manage property repair requests</p>
+          <h1 className="text-3xl font-bold text-[var(--navy)] tracking-tight">Maintenance Requests</h1>
+          <p className="rw-muted mt-1">Track and manage property repair requests</p>
         </div>
         <button 
           onClick={() => setShowModal(true)}
-          className="px-6 py-3 active-gradient rounded-xl text-white text-xs font-bold uppercase tracking-wider shadow-lg shadow-brand-accent/20 transition-all flex items-center gap-2"
+          className="rw-btn-primary text-xs uppercase tracking-wider flex items-center gap-2"
         >
           <Plus size={18} />
           Log New Request
@@ -70,71 +105,191 @@ export default function LandlordMaintenance() {
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1 relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-accent transition-colors" size={18} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--ink-subtle)]" size={18} />
           <input 
             type="text" 
             placeholder="Search requests by property or tenant..."
-            className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white focus:outline-none focus:border-brand-accent transition-all"
+            className="rw-input rw-input-icon-left"
           />
         </div>
-        <button className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm font-medium hover:bg-white/10 transition-all flex items-center gap-2">
-          <Filter size={18} className="text-brand-accent" />
-          More Filters
+        <button className="rw-btn-secondary text-sm font-medium flex items-center gap-2">
+          <Filter size={18} className="text-[var(--stone)]" />
+          Filter Tickets
         </button>
       </div>
 
       {/* Requests Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {maintenanceRequests.map((request) => (
-          <div key={request.id} className="glass-card p-6 rounded-2xl border border-white/5 group hover:border-brand-accent/20 transition-all flex flex-col">
-            <div className="flex justify-between items-start mb-6">
-               <div className="flex items-center gap-3">
-                  <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest ${priorityStyles[request.priority]}`}>
-                    {request.priority}
-                  </span>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{request.id}</span>
-               </div>
-               <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${statusStyles[request.status]}`}>
-                 {request.status}
-               </span>
-            </div>
-
-            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-brand-accent transition-colors">{request.title}</h3>
-            <p className="text-slate-400 text-sm flex items-center gap-2 mb-6">
-              <MapPin size={14} className="text-brand-accent" />
-              {request.property}
-            </p>
-
-            <div className="bg-white/5 p-4 rounded-xl border border-white/5 mb-6">
-               <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                     <div className="w-8 h-8 rounded-full bg-brand-accent/10 flex items-center justify-center text-brand-accent font-bold text-xs">
-                        {request.tenant[0]}
-                     </div>
-                     <div>
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none mb-1">Tenant</p>
-                        <p className="text-xs font-bold text-white">{request.tenant}</p>
-                     </div>
-                  </div>
-                  <div className="text-right">
-                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none mb-1">Reported</p>
-                     <p className="text-xs font-bold text-slate-400">{request.date}</p>
-                  </div>
-               </div>
-            </div>
-
-            <div className="flex items-center justify-between mt-auto pt-6 border-t border-white/5">
-               <div className="flex items-center gap-2">
-                  <Wrench size={16} className="text-brand-accent" />
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{request.category}</span>
-               </div>
-               <button className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-white text-[10px] font-bold uppercase tracking-widest transition-all">
-                  View Details
-               </button>
-            </div>
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <Loader2 className="text-[var(--stone)] animate-spin" size={40} />
+          <p className="rw-muted font-medium tracking-widest text-xs uppercase">Loading Maintenance Requests...</p>
+        </div>
+      ) : maintenance.length === 0 ? (
+        <div className="rw-panel p-20 text-center">
+          <div className="w-20 h-20 bg-[rgba(28,47,63,0.05)] rounded-full flex items-center justify-center mx-auto mb-6">
+            <Wrench size={40} className="text-[var(--ink-subtle)]" />
           </div>
-        ))}
-      </div>
+          <h3 className="text-2xl font-bold text-[var(--navy)] mb-2">No Maintenance Requests</h3>
+          <p className="rw-muted max-w-xs mx-auto">No maintenance issues reported yet. Great!</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {maintenance.map((request) => (
+           <div key={request.id} className="rw-card p-6 group hover:border-[var(--stone-light)] transition-all flex flex-col">
+              <div className="flex justify-between items-start mb-6">
+                 <div className="flex items-center gap-3">
+                <span className={`${priorityStyles[request.priority] || 'rw-pill'}`}>
+                      {request.priority}
+                    </span>
+                <span className="text-[10px] font-bold text-[var(--ink-subtle)] uppercase tracking-widest">REQ-{request.id}</span>
+                 </div>
+              <span className={`${statusStyles[request.status] || 'rw-pill'}`}>
+                   {request.status}
+                 </span>
+              </div>
+
+            <h3 className="text-xl font-bold text-[var(--navy)] mb-2 group-hover:text-[var(--stone)] transition-colors">{request.title}</h3>
+            <p className="rw-muted text-sm mb-6">{request.description}</p>
+
+            <div className="bg-[rgba(28,47,63,0.03)] p-4 rounded-xl border border-[var(--gray-pale)] mb-6">
+                 <div className="flex items-center justify-between">
+                    <div>
+                    <p className="text-[10px] font-bold text-[var(--ink-subtle)] uppercase tracking-widest leading-none mb-1">Reported</p>
+                    <p className="text-xs font-bold text-[var(--ink-subtle)]">{getTimeAgo(request.created_at)}</p>
+                    </div>
+                 </div>
+              </div>
+
+            <div className="flex items-center justify-between mt-auto pt-6 border-t border-[var(--gray-pale)]">
+                 <div className="flex items-center gap-2">
+                <Wrench size={16} className="text-[var(--stone)]" />
+                <span className="text-xs font-bold text-[var(--ink-subtle)] uppercase tracking-widest">Pending</span>
+                 </div>
+              <button onClick={() => setSelectedRequest(request)} className="rw-btn-secondary text-[10px] uppercase tracking-widest">
+                    View Details
+                 </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Maintenance Request Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-[rgba(28,47,63,0.25)] backdrop-blur-sm">
+          <div className="w-full max-w-2xl rw-panel p-10 animate-fade-in-up relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <button 
+              onClick={() => setShowModal(false)}
+              className="absolute top-6 right-6 p-2 rounded-lg text-[var(--ink-subtle)] hover:text-[var(--navy)] transition-all"
+            >
+              <X size={20} />
+            </button>
+            
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-[var(--navy)] tracking-tight">Log Maintenance Request</h2>
+              <p className="rw-muted text-sm mt-1">Report a new issue that needs attention</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6 text-left">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="rw-label-text mb-2 block">Issue Title</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Water leak in bathroom" 
+                    className="rw-input"
+                    value={formData.title}
+                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="rw-label-text mb-2 block">Priority Level</label>
+                  <select 
+                    className="rw-select appearance-none"
+                    value={formData.priority}
+                    onChange={(e) => setFormData({...formData, priority: e.target.value})}
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="rw-label-text mb-2 block">Description</label>
+                <textarea 
+                  placeholder="Provide details about the issue..." 
+                  className="rw-input resize-none" 
+                  rows="4"
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  required
+                />
+              </div>
+
+              <button 
+                type="submit"
+                className="w-full rw-btn-primary mt-6 uppercase tracking-widest text-xs flex items-center justify-center gap-2"
+              >
+                <span>Log Maintenance Request</span>
+                <ArrowRight size={18} />
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Details Modal */}
+      {selectedRequest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-[rgba(28,47,63,0.25)] backdrop-blur-sm">
+           <div className="w-full max-w-lg rw-panel p-10 animate-fade-in-up relative">
+              <button 
+                onClick={() => setSelectedRequest(null)}
+                className="absolute top-6 right-6 p-2 rounded-lg text-[var(--ink-subtle)] hover:text-[var(--navy)] transition-all"
+              >
+                <X size={20} />
+              </button>
+              
+              <div className="flex items-center gap-3 mb-6">
+                 <span className={`${priorityStyles[selectedRequest.priority]}`}>{selectedRequest.priority}</span>
+                 <span className={`${statusStyles[selectedRequest.status]}`}>{selectedRequest.status}</span>
+              </div>
+              
+              <h2 className="text-2xl font-bold text-[var(--navy)] mb-2">{selectedRequest.title}</h2>
+              <p className="text-[10px] font-bold text-[var(--ink-subtle)] uppercase tracking-widest mb-6">
+                 ID: REQ-{selectedRequest.id}
+              </p>
+              
+              <div className="bg-[rgba(28,47,63,0.03)] p-6 rounded-xl border border-[var(--gray-pale)] mb-6">
+                 <p className="text-sm text-[var(--navy)] leading-relaxed italic">"{selectedRequest.description}"</p>
+              </div>
+              
+              <div className="space-y-4">
+                 <div className="flex justify-between items-center py-2 border-b border-[var(--gray-pale)]">
+                    <span className="text-sm font-bold text-[var(--ink-subtle)]">Property ID</span>
+                    <span className="text-sm font-bold text-[var(--navy)]">{selectedRequest.property_id || 'N/A'}</span>
+                 </div>
+                 <div className="flex justify-between items-center py-2 border-b border-[var(--gray-pale)]">
+                    <span className="text-sm font-bold text-[var(--ink-subtle)]">Tenant ID</span>
+                    <span className="text-sm font-bold text-[var(--navy)]">{selectedRequest.tenant_id || 'N/A'}</span>
+                 </div>
+                 <div className="flex justify-between items-center py-2 border-b border-[var(--gray-pale)]">
+                    <span className="text-sm font-bold text-[var(--ink-subtle)]">Reported On</span>
+                    <span className="text-sm font-bold text-[var(--navy)]">{new Date(selectedRequest.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                 </div>
+              </div>
+              
+              <button 
+                onClick={() => setSelectedRequest(null)}
+                className="w-full rw-btn-primary mt-8 uppercase tracking-widest text-xs"
+              >
+                Close Details
+              </button>
+           </div>
+        </div>
+      )}
     </div>
   );
 }

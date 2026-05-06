@@ -1,0 +1,8 @@
+stateDiagram-v2
+  [*] --> Unauthenticated
+  Unauthenticated --> Authenticating : Login Request
+  Authenticating --> Authenticated : Valid Credentials
+  Authenticating --> Unauthenticated : Invalid Credentials
+  Authenticated --> SessionExpired : Token Expires/Invalid
+  Authenticated --> Unauthenticated : Logout
+  SessionExpired --> Unauthenticated : Redirect to Login

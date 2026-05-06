@@ -1,0 +1,11 @@
+graph TD
+  User((User))
+  Login[Login]
+  JWT{JWT Role}
+  Landlord[Landlord Portal]
+  Tenant[Tenant Portal]
+
+  User --> Login
+  Login --> JWT
+  JWT -->|role landlord| Landlord
+  JWT -->|role tenant| Tenant

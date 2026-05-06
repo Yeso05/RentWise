@@ -1,0 +1,11 @@
+erDiagram
+  USERS ||--o{ PROPERTIES : owns
+  USERS ||--o| TENANTS : has_profile
+  PROPERTIES ||--o{ TENANTS : houses
+  TENANTS ||--o{ PAYMENTS : makes
+  PROPERTIES ||--o{ PAYMENTS : receives
+  TENANTS ||--o{ MAINTENANCE_REQUESTS : submits
+  PROPERTIES ||--o{ MAINTENANCE_REQUESTS : has
+  TENANTS ||--o{ LEASE_DOCUMENTS : signs
+  PROPERTIES ||--o{ LEASE_DOCUMENTS : has
+  USERS ||--o{ NOTIFICATIONS : receives

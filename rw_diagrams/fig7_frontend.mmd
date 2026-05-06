@@ -1,0 +1,13 @@
+graph TD
+  App[App]
+  Router[react-router-dom]
+  Protect[ProtectedRoute]
+  Layout[AppLayout]
+  Landlord[Landlord Pages]
+  Tenant[Tenant Pages]
+
+  App --> Router
+  Router --> Protect
+  Protect --> Layout
+  Layout --> Landlord
+  Layout --> Tenant

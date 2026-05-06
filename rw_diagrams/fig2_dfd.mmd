@@ -1,0 +1,14 @@
+graph LR
+  User((User))
+  Auth[Auth Controller]
+  Local[(Local Storage)]
+  Protect[Protected Route]
+  API[Protected Controllers]
+  DB[(PostgreSQL)]
+
+  User -->|Email/Pass| Auth
+  Auth -->|JWT Token| Local
+  User -->|Navigate| Protect
+  Protect -->|Read Token| Local
+  Protect -->|Access| API
+  API -->|SQL Queries| DB

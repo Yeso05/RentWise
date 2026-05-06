@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, UserCog, UserCircle2, User, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, ArrowRight, User, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const [role, setRole] = useState('Landlord');
@@ -52,7 +52,8 @@ export default function Login() {
       // 3. Store session data
       localStorage.setItem("rentwise_token", data.token);
       localStorage.setItem("rentwise_user", JSON.stringify(data.user));
-      localStorage.setItem("rentwise_name", data.user.full_name);
+      localStorage.setItem("rentwise_name", data.user.name);
+      localStorage.setItem("rentwise_role", data.user.role);
 
       // 4. Role-based navigation (handling capitalized roles from DB)
       const userRole = data.user.role?.toLowerCase();
@@ -90,124 +91,135 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-bg flex items-center justify-center p-6 relative overflow-hidden">
-      
-      {/* Background Decor */}
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-brand-accent/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px]" />
-      </div>
-
-      <div className="w-full max-w-md relative z-10 glass-card p-10 rounded-2xl border border-white/5 shadow-2xl">
-        <div className="text-center mb-10">
-          <div className="w-16 h-16 bg-brand-accent rounded-2xl flex items-center justify-center text-white font-black text-3xl mx-auto mb-6 shadow-lg shadow-brand-accent/20">
-            R
+    <div className="rw-page rw-login-shell">
+      <div className="rw-login-grid">
+        <section className="rw-login-hero">
+          <div className="rw-login-kicker">Secure Portal</div>
+          <div className="rw-login-brand">
+            Rent<span>Wise</span>
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight mb-2">Welcome to RentWise</h1>
-          <p className="text-slate-500 font-medium text-sm">Internal Portal Access</p>
-        </div>
+          <h1 className="rw-login-title">Sign in to your management workspace.</h1>
+          <p className="rw-login-subtitle">
+            Manage leases, payments, maintenance, and tenant communication from a single, verified portal.
+          </p>
 
-        {/* Mock user shortcuts */}
-        <div className="flex gap-2 mb-8 justify-center">
-            <button onClick={() => setMockUser('Landlord')} className="px-3 py-1 bg-white/5 border border-white/5 hover:border-brand-accent/30 rounded-lg text-[9px] font-bold text-slate-500 uppercase tracking-widest transition-all">Mock Landlord</button>
-            <button onClick={() => setMockUser('Tenant')} className="px-3 py-1 bg-white/5 border border-white/5 hover:border-brand-accent/30 rounded-lg text-[9px] font-bold text-slate-500 uppercase tracking-widest transition-all">Mock Tenant</button>
-        </div>
+          <ul className="rw-login-list">
+            <li>Role-based access for landlords and tenants.</li>
+            <li>Document vault with verified lease records.</li>
+            <li>Maintenance tracking with status approvals.</li>
+          </ul>
 
-        <form onSubmit={handleLogin} className="space-y-5">
-          <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 px-1">Full Name</label>
-            <div className="relative">
-               <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-               <input
-                type="text"
-                placeholder="Aarthi / Rahul"
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white focus:outline-none focus:border-brand-accent transition-all"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
+          <div className="rw-login-support">Need access? Contact your property administrator.</div>
+        </section>
+
+        <section className="rw-login-panel rw-panel">
+          <div className="rw-login-panel-inner">
+            <div className="rw-login-panel-header">
+              <div className="w-16 h-16 border border-[var(--stone)] text-[var(--navy)] rounded-2xl flex items-center justify-center text-3xl font-bold mx-auto mb-5">
+                R
+              </div>
+              <h1 className="rw-login-panel-title">Welcome back</h1>
+              <p className="rw-login-panel-subtitle">Use your approved credentials to enter.</p>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 px-1">Email Address</label>
-            <div className="relative">
-               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-               <input
-                type="email"
-                placeholder="name@gmail.com"
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white focus:outline-none focus:border-brand-accent transition-all"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 px-1">Access Token</label>
-            <div className="relative">
-               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-               <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-12 text-white focus:outline-none focus:border-brand-accent transition-all"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <button 
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            <div className="flex gap-2 mb-8 justify-center">
+              <button onClick={() => setMockUser('Landlord')} className="rw-btn-ghost text-[9px] uppercase tracking-[0.3em]">
+                Mock Landlord
+              </button>
+              <button onClick={() => setMockUser('Tenant')} className="rw-btn-ghost text-[9px] uppercase tracking-[0.3em]">
+                Mock Tenant
               </button>
             </div>
+
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div>
+                <label className="rw-label-text mb-2 block">Full Name</label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--ink-subtle)]" size={18} />
+                  <input
+                    type="text"
+                    placeholder="Aarthi / Rahul"
+                    className="rw-input rw-input-icon-left"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    autoComplete="name"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="rw-label-text mb-2 block">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--ink-subtle)]" size={18} />
+                  <input
+                    type="email"
+                    placeholder="name@gmail.com"
+                    className="rw-input rw-input-icon-left"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="username"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="rw-label-text mb-2 block">Access Token</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--ink-subtle)]" size={18} />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    className="rw-input rw-input-icon-left rw-input-icon-right"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--ink-subtle)] hover:text-[var(--navy)] transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="rw-label-text mb-2 block">Portal Role</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setRole('Landlord')}
+                    className={role === 'Landlord' ? 'rw-btn-primary' : 'rw-btn-secondary'}
+                  >
+                    Landlord
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRole('Tenant')}
+                    className={role === 'Tenant' ? 'rw-btn-primary' : 'rw-btn-secondary'}
+                  >
+                    Tenant
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" className="w-full rw-btn-primary mt-2 flex items-center justify-center gap-3">
+                <span className="text-xs uppercase tracking-widest font-semibold">Login</span>
+                <ArrowRight size={18} />
+              </button>
+            </form>
+
+            <div className="mt-10 pt-6 border-t border-[var(--gray-pale)] text-center">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--ink-subtle)]">
+                By logging in you agree to our <span className="text-[var(--ink-muted)]">Service Nodes Protocol</span>
+              </p>
+            </div>
           </div>
-
-          <div>
-             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 px-1">Portal Role</label>
-             <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setRole('Landlord')}
-                  className={`py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border ${
-                    role === 'Landlord' 
-                      ? 'active-gradient border-transparent shadow-lg shadow-brand-accent/20' 
-                      : 'bg-white/5 border-white/5 text-slate-500 hover:bg-white/10'
-                  }`}
-                >
-                  Landlord
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole('Tenant')}
-                  className={`py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border ${
-                    role === 'Tenant' 
-                      ? 'active-gradient border-transparent shadow-lg shadow-brand-accent/20' 
-                      : 'bg-white/5 border-white/5 text-slate-500 hover:bg-white/10'
-                  }`}
-                >
-                  Tenant
-                </button>
-             </div>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full py-4 active-gradient text-white font-bold rounded-xl shadow-lg shadow-brand-accent/20 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 mt-4"
-          >
-            <span className="text-xs uppercase tracking-widest font-black">Login</span>
-            <ArrowRight size={18} />
-          </button>
-        </form>
-
-        <div className="mt-10 pt-6 border-t border-white/5 text-center">
-            <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest leading-relaxed">
-                By logging in you agree to our <span className="text-slate-500">Service Nodes Protocol</span>
-            </p>
-        </div>
+        </section>
       </div>
     </div>
   );

@@ -1,33 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
-const bcrypt = require('bcrypt');
+const tenantsController = require('../controllers/tenants');
 
-// ADD TENANT (Landlord action)
-router.post('/', async (req, res) => {
-    try {
-        const { full_name, email, password, property_id } = req.body;
-        
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
-        
-        const result = await pool.query(
-            'INSERT INTO tenants (full_name, email, password, property_id) VALUES ($1, $2, $3, $4) RETURNING *',
-            [full_name, email, hashedPassword, property_id]
-        );
-        
-        res.status(201).json(result.rows[0]);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+// GET all tenants
+router.get('/', tenantsController.getAll);
 
-// GET TENANT PROPERTY
+// POST new tenant
+router.post('/', tenantsController.create);
+
+// GET tenant property
 router.get('/:email', async (req, res) => {
     try {
         const { email } = req.params;
-        
-        // Find tenant and their property
+        const pool = require('../db');
         const result = await pool.query(`
             SELECT 
                 t.id as tenant_id, t.full_name, t.email, t.created_at,
@@ -62,5 +47,11 @@ router.get('/:email', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+// PUT update tenant
+router.put('/:id', tenantsController.update);
+
+// DELETE tenant
+router.delete('/:id', tenantsController.remove);
 
 module.exports = router;
